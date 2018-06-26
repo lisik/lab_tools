@@ -13,6 +13,8 @@ class1 = {class1.name};
 class2 = dir([class2_dir '*' im_format]);
 class2 = {class2.name};
 
+all_ims = [class1; class2];
+
 class1_ims = zeros(length(class1), im_size(1)*im_size(2));
 class2_ims = zeros(length(class1), im_size(1)*im_size(2));
 
