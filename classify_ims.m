@@ -2,21 +2,22 @@
 % im_features can be set to pixel intensity (RGB or grayscale) or output of
 % different VGG layers (set layers below)
 clear all
-im_dir =  '~/Dropbox (MIT)/Projects/social_interaction/stimuli/MEG_stills/CNN_experiment/';
+im_dir =  '~/Dropbox (MIT)/Projects/social_interaction/stimuli/MEG_stills/experiment_recrop/';
 % 2 classes of images, in separate directories
-class1_dir = [im_dir '/interaction/'];
-class2_dir = [im_dir '/non-interaction/'];
+class1_dir = [im_dir '/interact/'];
+class2_dir = [im_dir '/non-interact/'];
+svm = 0;% svm or correlation coefficient classifier
 
 im_features = 'vgg'; %'vgg32'; %'gray'; %options: grayscale, rgb, vgg  
-vgg_layers = [6, 11, 18, 25, 32];% 5 pooling layers in VGG are 06, 11, 18, 25, 32
+vgg_layers = [6,11,18,25,32,33,36,39];% 5 pooling layers in VGG are 06, 11, 18, 25, 32
 im_format = '.jpg';
 run_pca = 1;
 num_PCs = 40;
 
-
 % number of SVM resample runs
 resample_runs = 20;
 
+%% Have to order these properly for MEG experiment...
 class1 = dir([class1_dir '*' im_format]);
 class1 = {class1.name};
 class2 = dir([class2_dir '*' im_format]);
@@ -73,6 +74,9 @@ imageFeatures_orig = imageFeatures;
 imageFeatures = imageFeatures_pca(:,1:num_PCs);
 end
 
+%% z score data
+imageFeatures = zscore(imageFeatures);
+
 for i = 1:resample_runs
     % 80-20 crossvalidation split
     [train,test] = crossvalind('holdout',labels,0.2);
@@ -82,9 +86,19 @@ for i = 1:resample_runs
     train_data = imageFeatures(train,:);
     test_data = imageFeatures(test,:);
     
+    if svm
     SVMStruct = fitcsvm(train_data,train_labels);
     pred = predict(SVMStruct, test_data);
     acc(l,i) = sum(pred==test_labels)/length(test_labels);
+    else
+    clear mean_train
+    mean_train(1,:) = mean(train_data(train_labels==1,:));
+    mean_train(2,:) = mean(train_data(train_labels==2,:));
+    
+    [dv, pred] = max(corr(test_data', mean_train')');
+    acc(l,i) = sum(pred==test_labels')/length(test_labels);
+
+    end
     
 end
 
