@@ -19,7 +19,7 @@ function b = banded_ridge(y,X1,X2,k1,k2,flag)
 %
 
 
-%   Copyright 1993-2008 The MathWorks, Inc.
+%   Based on ridge, which is Copyright 1993-2008 The MathWorks, Inc.
 
 
 if nargin < 5,              
