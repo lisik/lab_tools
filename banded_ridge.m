@@ -7,8 +7,9 @@ function b = banded_ridge(y,X1,X2,k1,k2,flag)
 %   on the predictors X using ridge parameter K.  The matrix X should
 %   not contain a column of ones.  The results are computed after
 %   centering and scaling the X columns so they have mean 0 and
-%   standard deviation 1.  If Y has n observations, X is an n-by-p
-%   matrix, and K1 is a scalar, the result B1 is a column vector with p
+%   standard deviation 1.  If Y has n observations, X1 is an n-by-p1
+%   matrix, X is an n-by-p2 matrix, and K1 is a scalar, 
+%   the result B1 is a column vector with p=p1+p2
 %   elements.  If K1 has m elements, B1 is p-by-m.
 %   Currently only supports one-dimensional K2.
 %
@@ -37,10 +38,6 @@ end
 [n1,p1] = size(X1);
 [n2,p2] = size(X2);
 
-if p1~=p2
-    error(message('X1 and X2 must have the same number of rows'))
-end
-
 [n,collhs] = size(y);
 if n1~=n 
     error(message('stats:ridge:InputSizeMismatch')); 
@@ -48,6 +45,10 @@ end
 if n2~=n 
     error(message('stats:ridge:InputSizeMismatch')); 
 end 
+
+if p1+p2~collhs
+    error(message('X1 and X2 must have in sum the same number of columns as y'))
+end
 
 if collhs ~= 1, 
     error(message('stats:ridge:InvalidData')); 
