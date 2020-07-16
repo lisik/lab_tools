@@ -9,20 +9,16 @@ im_format = '.jpg';
 resample_runs = 5;
 class1_dir = [im_dir '/interact/'];
 class2_dir = [im_dir '/non-interact/'];
-class3_dir = [im_dir '/watch/'];
+
 svm = 1;% svm or correlation coefficient classifier
 
-im_features = 'alexnet'; %'vgg'; %'gray'; %options: grayscale, rgb, vgg, resnet 
+im_features = 'vgg'; %'vgg'; %'gray'; %options: grayscale, rgb, vgg, resnet 
 vgg_layers = {5,10,17,24,31};% 5 pooling layers in VGG are 06, 11, 18, 25, 32
 alexnet_layers = {2,6,10,12,14,17,20,23}; 
 resnet_layers = {'activation_1_relu' ,'activation_10_relu' ,'activation_22_relu','activation_40_relu' ,'activation_49_relu' };
-run_pca = 1;
+run_pca = 0;
 num_PCs = 47;
 
-% number of SVM resample runs
-
-
-%% Have to order these properly for MEG experiment...
 class1 = dir([class1_dir '*' im_format]);
 class1 = {class1.name};
 class2 = dir([class2_dir '*' im_format]);
