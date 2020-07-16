@@ -6,14 +6,14 @@ im_dir =  '~/Downloads/stimuli-no-scrubs/';
 im_dir = '~/Downloads/experiment_recrop/experiment_recrop/';
 % 2 classes of images, in separate directories
 im_format = '.jpg';
-resample_runs = 20;
+resample_runs = 5;
 class1_dir = [im_dir '/interact/'];
 class2_dir = [im_dir '/non-interact/'];
 class3_dir = [im_dir '/watch/'];
-svm = 0;% svm or correlation coefficient classifier
+svm = 1;% svm or correlation coefficient classifier
 
-im_features = 'vgg'; %'vgg'; %'gray'; %options: grayscale, rgb, vgg, resnet 
-vgg_layers = {6,11,18,25,32};% 5 pooling layers in VGG are 06, 11, 18, 25, 32
+im_features = 'alexnet'; %'alexnet';'vgg'; %'gray'; %options: grayscale, rgb, vgg, resnet 
+vgg_layers = {5,10,17,24,31};% 5 pooling layers in VGG are 06, 11, 18, 25, 32
 resnet_layers = {'activation_1_relu' ,'activation_10_relu' ,'activation_22_relu','activation_40_relu' ,'activation_49_relu' };
 run_pca = 1;
 num_PCs = 50;
@@ -30,10 +30,13 @@ class3 = dir([class3_dir '*' im_format]);
 class3 = {class3.name};
 
 if strcmp(im_features, 'vgg')
-    % can modify here with AlexNet if preferred
     net = vgg16;
     imageSize = net.Layers(1).InputSize;
     layers = vgg_layers;
+elseif strcmp(im_features, 'alexnet')
+    net = alexnet;
+    imageSize = net.Layers(1).InputSize;
+    layers = 1:8;
 elseif strcmp(im_features, 'resnet')
     net = resnet50;
     imageSize = net.Layers(1).InputSize;
@@ -56,7 +59,7 @@ for i = 1:length(class1)
     tmp1 = imread([class1_dir class1{i}]);
     tmp2 = imread([class2_dir class2{i}]);
     
-    elseif strcmpi(im_features, 'VGG') | strcmpi(im_features, 'resnet')
+    elseif strcmpi(im_features, 'VGG') | strcmpi(im_features, 'resnet') | strcmpi(im_features, 'alexnet')
     layer = layers{l};
   
     tmp1 = imread([class1_dir class1{i}]);
@@ -75,7 +78,7 @@ for i = 1:length(class1)
     end
     
     else
-    error('Not a valid image feature \n options are rgb, gray, VGG, resnet')
+    error('Not a valid image feature \n options are rgb, gray, alexnet, VGG, resnet')
     end
     
     class1_ims(i,:) = tmp1(:);
@@ -92,8 +95,6 @@ imageFeatures_orig = [imageFeatures; class3_ims];
 imageFeatures = imageFeatures_pca(1:length(class1)*2,1:num_PCs);
 end
 
-%% z score data
-imageFeatures = zscore(imageFeatures);
 
 for i = 1:resample_runs
     % 80-20 crossvalidation split
@@ -101,14 +102,19 @@ for i = 1:resample_runs
 %     test = [(i-1)*4+1:i*4, (i-1)*4+25:i*4+24];
 %    test = [(i-1)*4+1:i*4, (i-1)*4+17:i*4+16];
 
-    inds = randperm(12);
-    test= [(inds(1)-1)*2+1:inds(1)*2, (inds(2)-1)*2+1:inds(2)*2, ...
-        (inds(1)-1)*2+25:inds(1)*2+24, (inds(2)-1)*2+25:inds(2)*2+24];
-    train = setdiff(1:size(imageFeatures,1),test);
+%     inds = randperm(12);
+%     test= [(inds(1)-1)*2+1:inds(1)*2, (inds(2)-1)*2+1:inds(2)*2, ...
+%         (inds(1)-1)*2+25:inds(1)*2+24, (inds(2)-1)*2+25:inds(2)*2+24];
+%     train = setdiff(1:size(imageFeatures,1),test);
+    
     train_labels = labels(train);
     test_labels = labels(test)';
     train_data = imageFeatures(train,:);
     test_data = imageFeatures(test,:);
+    
+    %% z score data
+    %train_data = zscore(train_data);
+   % test_data = zscore(test_data);
     
     if svm
     SVMStruct = fitcsvm(train_data,train_labels);
